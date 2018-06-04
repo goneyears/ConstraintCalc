@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<script>
+
+
+    function Dictionary() {  
+        var items = {};  
+
+        this.has = function (key) {  
+            return key in items;  
+        };  
+
+        this.set = function (key, value) {  
+            items[key] = value;  
+        };  
+
+        this.remove = function (key) {  
+            if (this.has(key)) {  
+                delete items[key];  
+                return true;  
+            }  
+            return false;  
+        };  
+
+        this.get = function (key) {  
+            return this.has(key) ? items[key] : undefined;  
+        };  
+
+        this.values = function () {  
+            var values = [];  
+            for (var k in items) {  
+                if (this.has(k)) {  
+                    values.push(items[k]);  
+                }  
+            }  
+            return values;  
+        };  
+
+        this.clear = function () {  
+            items = {};  
+        };  
+
+        this.size = function () {  
+            var count = 0;  
+            for (var prop in items) {  
+                if (items.hasOwnProperty(prop)) {  
+                    ++count;  
+                }  
+            }  
+            return count;  
+        };  
+
+        this.getItems = function () {  
+            return items;  
+        };  
+    }  
+
+
+
+    function make_connector(){
+        this.value = false;
+        this.informant = false;
+        this.constraints = [];
+
+        this.set_value = function(newval, setter){
+            if(!this.has_value() || setter == this.informant){
+                this.value = newval;
+                this.informant = setter;
+                for_each_except(setter, inform_about_value, this.constraints);
+
+            }
+            else if(!(this.value==newval)){
+                console.log("contradiction");
+                console.log("value: " + string(this.value));
+                console.log("newval: " + string(newval));
+            }
+        }
+        
+        this.forget_value = function(retractor){            
+            if (retractor == this.informant){
+                this.informant = null;
+                for_each_except(retractor, inform_about_no_value, this.constraints)
+            }
+
+        }
+        
+        this.connect = function(new_constraint){
+            if(!memq(new_constraint, this.constraints)){
+                this.constraints.unshift(new_constraint);
+            }
+            if(has_value()){
+                inform_about_value(new_constraint);
+            }
+
+        }
+        
+        this.has_value = function(){
+            if(this.informant){
+                return true;
+            }
+            return false;
+        }
+
+        this.get_value = function(){
+            return this.value;
+        }
+    }
+
+    function inform_about_value(constraint){
+        constraint.I_have_a_value();
+
+    }
+
+    function inform_about_no_value(constraint){
+        constraint.I_lost_my_value();
+    }
+
+    function for_each_except(exception, procedure, list){
+        //console.log(list);
+        function loop(items){
+            if(items == null){
+                console.log("done");
+            }
+            else if(items[0] == exception){
+                console.log(items);
+                loop(rest(items));
+            }
+            else{
+                console.log(items);
+                procedure(first(items));
+                loop(rest(items));
+            }
+        }
+        loop(list);
+    }
+
+    function first(arr){
+        return arr[0];
+    }
+
+    function rest(arr){
+        if(arr[1] != null){
+            return arr.slice(1,arr.length);
+        }
+        return null;
+    }
+
+    function memq(element, arr){
+        var i = arr.length;
+        while(i--){
+            if(arr[i] == element){
+                return true;
+            }
+        }
+        return false;
+
+    }
+    
+    function adder(a, b, sum){
+        this.a = a;
+        this.b = b;
+        this.sum = sum;
+
+        this.I_have_a_value = process_new_value;
+        function process_new_value(){
+            if(this.a.has_value() && this.b.has_value()){
+                this.sum.set_value((this.a.get_value() + this.b.get_value()),this);
+            }
+            else if(this.a.has_value() && this.sum.has_value()){
+                this.b.set_value((this.sum.get_value() - this.a.get_value()),this);
+            }
+            else if(this.b.has_value() && this.sum.has_value()){
+                this.a.set_value((this.sum.get_value() - this.b.get_value()),this);
+            }
+        }
+        
+        this.I_lost_my_value = process_forget_value;
+        function process_forget_value(){
+            this.a.forget_value(this);
+            this.b.forget_value(this);
+            this.sum.forget_value(this);
+
+        }
+
+        this.a.connect(this);
+        //console.log(this.a.constraints);
+        this.b.connect(this);
+        this.sum.connect(this);
+    }
+
+    function subtractor(){}
+
+    function multiplier(){}
+
+
+    function divider(){}
+
+    function probe(name, connector){
+        function print_probe(value){
+            console.log("Probe: " + name + "=" + value.toString());
+        }
+
+        this.I_have_a_value = process_new_value;
+        function process_new_value(){
+            print_probe(connector.get_value());
+        }
+        
+        this.I_lost_my_value = process_forget_value
+        function process_forget_value(){
+            print_probe("?");
+        }
+
+        connector.connect(this);
+    }
+
+
+
+   // var a = new make_connector();
+   // var b = new make_connector();
+   // var sum = new make_connector();
+   // var adderojb = new adder(a, b, sum);
+   // var porbe_a = new probe('a', a);
+   // var probe_b = new probe('b', b);
+   // var probe_sum = new probe('sum', sum);
+   // a.set_value(2, "usr");
+   // b.set_value(3, "usr");
+   // document.write(sum.get_value());
+    // a.forget_value("usr");
+
+    function getFunc(tree){
+        return adder;
+    }
+
+    function Lt(tree){
+        return;
+    }
+
+    function Rt(tree){
+        return;
+    }
+
+    function isTree(tree){
+
+    }
+
+    var dic = new Dictionary(); 
+    function convertToConnector(c){
+        var ct = new make_connector();
+        dic.set(c,ct);
+        return ct;
+    }
+
+    function genConstraint(tree){
+        if(isTree(tree)){
+            getFunc(tree)(genConstraint(Lt(tree)),genConstraint(Rt(tree)));
+        }
+        else{
+            return ConvertToConnector(tree);
+        }
+    }
+
+</script>
+
+</body>
+</html>
