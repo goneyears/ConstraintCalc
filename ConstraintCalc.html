@@ -4,7 +4,9 @@
 
 <script>
 
-
+    function isArray(o) {
+        return Object.prototype.toString.call(o) == '[object Array]';
+    }
     function Dictionary() {  
         var items = {};  
 
@@ -38,6 +40,13 @@
             return values;  
         };  
 
+        this.keys = function(){
+            var keys = [];
+            for(var k in items){
+                keys.push(k);
+            }
+        }
+
         this.clear = function () {  
             items = {};  
         };  
@@ -59,7 +68,7 @@
 
 
 
-    function make_connector(){
+    function Connector(){
         this.value = false;
         this.informant = false;
         this.constraints = [];
@@ -90,7 +99,7 @@
             if(!memq(new_constraint, this.constraints)){
                 this.constraints.unshift(new_constraint);
             }
-            if(has_value()){
+            if(this.has_value()){
                 inform_about_value(new_constraint);
             }
 
@@ -217,9 +226,9 @@
 
 
 
-   // var a = new make_connector();
-   // var b = new make_connector();
-   // var sum = new make_connector();
+   // var a = new Connector();
+   // var b = new Connector();
+   // var sum = new Connector();
    // var adderojb = new adder(a, b, sum);
    // var porbe_a = new probe('a', a);
    // var probe_b = new probe('b', b);
@@ -230,36 +239,78 @@
     // a.forget_value("usr");
 
     function getFunc(tree){
-        return adder;
+        if(tree[0] == "+"){
+            return adder;
+        }
+        else if(tree[0] == "-"){
+            return subtractor;
+        }
+        else if(tree[0] == "*"){
+            return multiplier;
+        }
+        else if(tree[0] == "/"){
+            return divider;
+        }
+        
     }
 
     function Lt(tree){
-        return;
+        return tree[1];
     }
 
     function Rt(tree){
-        return;
+        return tree[2];
     }
 
     function isTree(tree){
-
+        return isArray(tree);
     }
 
     var dic = new Dictionary(); 
     function convertToConnector(c){
-        var ct = new make_connector();
+        var ct = new Connector();
+        var probename = "probe_" + c;
+        var porbe = new probe(probename, ct)
+        console.log(c);
         dic.set(c,ct);
+        dic.set(probename,probe);
         return ct;
     }
 
+
     function genConstraint(tree){
         if(isTree(tree)){
-            getFunc(tree)(genConstraint(Lt(tree)),genConstraint(Rt(tree)));
+            var rt = new Connector();
+            var probename = "probe_" + tree[0];
+            var porbe = new probe(probename, rt)
+            var cst = new (getFunc(tree))(genConstraint(Lt(tree)),genConstraint(Rt(tree)),rt);
+            return rt;
         }
         else{
-            return ConvertToConnector(tree);
+            return convertToConnector(tree);
         }
     }
+
+    var ta = ["+", "m1", "m2"];
+    var tb = ["+", "n1", "n2"];
+    var t0 = ["+", ta, tb];
+
+    var c = new Connector();
+    genConstraint(t0);
+    dic.get("m1").set_value(2, "usr");
+    dic.get("m2").set_value(3, "usr");
+    dic.get("n1").set_value(4, "usr");
+    dic.get("n2").set_value(5, "usr");
+
+
+    console.log(dic.getItems());
+   // var test = ["+", "a", "b"];
+   // var testa = new Connector();
+   // var testb = new Connector();
+   // var testc = new Connector();
+   // var testo = new (getFunc(test))(testa,testb,testc);
+   // console.log(testo);
+
 
 </script>
 
