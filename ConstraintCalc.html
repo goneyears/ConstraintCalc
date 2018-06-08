@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>    
 <body>
 
 <script>
@@ -120,7 +123,6 @@
 
     function inform_about_value(constraint){
         constraint.I_have_a_value();
-
     }
 
     function inform_about_no_value(constraint){
@@ -128,17 +130,14 @@
     }
 
     function for_each_except(exception, procedure, list){
-        //console.log(list);
         function loop(items){
             if(items == null){
                 console.log("done");
             }
             else if(items[0] == exception){
-                console.log(items);
                 loop(rest(items));
             }
             else{
-                console.log(items);
                 procedure(first(items));
                 loop(rest(items));
             }
@@ -167,7 +166,31 @@
         return false;
 
     }
-    
+    function direct(a, b){
+        this.a = a;
+        this.b = b;
+
+        this.I_have_a_value = process_new_value;
+        function process_new_value(){
+            if(this.a.has_value()){
+                this.b.set_value(this.a.get_value(),this);
+            }
+            else if(this.b.has_value()){
+                this.a.set_value(this.b.get_value(),this);
+            }
+        }
+        
+        this.I_lost_my_value = process_forget_value;
+        function process_forget_value(){
+            this.a.forget_value(this);
+            this.b.forget_value(this);
+
+        }
+
+        this.a.connect(this);
+        this.b.connect(this);
+    } 
+
     function adder(a, b, sum){
         this.a = a;
         this.b = b;
@@ -224,8 +247,6 @@
         connector.connect(this);
     }
 
-
-
    // var a = new Connector();
    // var b = new Connector();
    // var sum = new Connector();
@@ -270,7 +291,6 @@
     var probe_dic = new Dictionary();
     function convertToConnector(c){
         var ct = new Connector();
-        //var probename = "probe_" + c;
         var porbe = new probe(c, ct)
         dic.set(c,ct);
         probe_dic.set(c,probe);
@@ -301,10 +321,10 @@
         var s3 = s2.replace(/^\s+|\s+$/,'');
         return s3.split(" ");
     }
-    str = "a*(c-a)*x+b+c/d+sin(3)=acot(sin(x+y^2))+log(2)";
-    str = "sin(a+b)+3";
-    str = "sin(cos(a+b))+2";
-    str = "a+sin(cos(a+b))+2";
+    //str = "a*(c-a)*x+b+c/d+sin(3)=acot(sin(x+y^2))+log(2)";
+    //str = "sin(a+b)+3";
+    //str = "sin(cos(a+b))+2";
+    //str = "a+sin(cos(a+b))+2";
     //str = "a";
     str = "a+b+c";
     function indexOfOpt(as){
@@ -363,53 +383,62 @@
     }
     function parse(str){
         ar = optSplit(str);
-        console.log(ar);
         return parseToTree(ar)
     }
-
-    console.log(parse(str));
-    var ta = ["+", "m1", "m2"];
-    var tb = ["+", "n1", "n2"];
-    var t0 = ["+", ta, tb];
-
-    //var c = new Connector();
-    //genConstraint(t0);
-    //dic.get("m1").set_value(2, "usr");
-    //dic.get("m2").set_value(3, "usr");
-    //dic.get("n1").set_value(4, "usr");
-    //dic.get("n2").set_value(5, "usr");
-    var t1 = parse(str);
-    var end = new Connector();
-    end = genConstraint(t1);
-    var probe_end = new probe("probe_end",end);
-
-    console.log(dic.getItems());
-    //dic.get("a").set_value(2, "usr");
-    //dic.get("b").set_value(3, "usr");
-    dic.get("c").set_value(4, "usr");
-    for(var e in dic.keys()){
-        console.log(e);
-        dic.get(e).set_value(2,"usr");
-    } 
-    console.log(dic.keys);
-
-    function getInput() {
-        var obj = document.getElementById("formulainput");
-        console.log(obj.value);
-        parseInput();
-        genInputbox("input1");
+    
+    function eqLeft(str){
+        return str.split("=")[0];
     }
-    function genInputbox(id){
-        var area = document.getElementById("formarea");
-        area.innerHTML = "";
+
+    function eqRight(str){
+        return str.split("=")[1];
+    }
+
+    function formulaToConstraint(str) {
+        var arreqleft = parse(eqLeft(str));
+        var eqleft = new Connector();
+        eqleft = genConstraint(arreqleft);
+
+        var arreqright = parse(eqRight(str));
+        var eqright = new Connector();
+        eqright = genConstraint(arreqright);
+
+        var eqconstraint = direct(eqleft,eqright);
+
+    }
+    function genInputbox(area, id){
+
         var element = document.createElement("input");
         element.id = id;
         element.style = "width:100px;height:40px;border:1;";
         area.appendChild(element); 
+        return element;
+    }
+
+    function generate(){
+        var obj = document.getElementById("formulainput");
+        var str = obj.value;
+        formulaToConstraint(str)
+
+
+        var area = document.getElementById("formarea");
+        area.innerHTML = "";
+        var inputboxes = [];
+        for(var i in dic.keys()){
+            var input = genInputbox(area, "input"+dic.keys()[i]);
+            input.onblur=blur_event;
+        } 
+    }
+    //getInput();
+    function blur_event(){
+        console.log("blur");
+    }
+    function focus_event(){
+        console.log("focus");
     }
 </script>
-<input  style="width:400px;height:40px;border:1;" type="text" id="formulainput"/>
-<button style="width:150px;height:50px;border:0;" onclick="getInput()">OK</button>
+<input style="width:400px;height:40px;border:1;" type="text" id="formulainput" value = "a+b+c=e+f"/>
+<button style="width:150px;height:50px;border:0;" onclick="generate()">OK</button>
 <p id="formarea"></p>
 </body>
 </html>
