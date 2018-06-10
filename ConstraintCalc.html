@@ -236,11 +236,13 @@
 
         this.I_have_a_value = process_new_value;
         function process_new_value(){
+            getInput(name).value=connector.get_value();
             print_probe(connector.get_value());
         }
         
         this.I_lost_my_value = process_forget_value
         function process_forget_value(){
+            getInput(name).value="--?";
             print_probe("?");
         }
 
@@ -396,13 +398,15 @@
 
     function formulaToConstraint(str) {
         var arreqleft = parse(eqLeft(str));
+        console.log(eqLeft(str));
+        console.log(eqRight(str));
         var eqleft = new Connector();
         eqleft = genConstraint(arreqleft);
 
         var arreqright = parse(eqRight(str));
         var eqright = new Connector();
         eqright = genConstraint(arreqright);
-
+        
         var eqconstraint = direct(eqleft,eqright);
 
     }
@@ -425,20 +429,45 @@
         area.innerHTML = "";
         var inputboxes = [];
         for(var i in dic.keys()){
-            var input = genInputbox(area, "input"+dic.keys()[i]);
+            var input = genInputbox(area, "input_"+dic.keys()[i]);
             input.onblur=blur_event;
         } 
+        
+    
+
+
     }
     //getInput();
-    function blur_event(){
-        console.log("blur");
+    function getVar(inputid){
+        return inputid.split("_")[1];
     }
+
+    function getInput(varname){
+        return document.getElementById("input_"+varname);
+    }
+
+    function blur_event(){
+        if(this.value == ""){
+            dic.get(getVar(this.id)).forget_value("usr");
+        }
+        else{
+            dic.get(getVar(this.id)).set_value(parseInt(this.value), "usr");
+        }
+        console.log(dic.getItems());
+    }
+
     function focus_event(){
         console.log("focus");
+    }
+    function test(){
+        console.log(dic.getItems());
     }
 </script>
 <input style="width:400px;height:40px;border:1;" type="text" id="formulainput" value = "a+b+c=e+f"/>
 <button style="width:150px;height:50px;border:0;" onclick="generate()">OK</button>
+<button style="width:150px;height:50px;border:0;" onclick="test()">OK</button>
+
+
 <p id="formarea"></p>
 </body>
 </html>
