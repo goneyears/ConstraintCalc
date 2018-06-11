@@ -78,6 +78,7 @@
         this.constraints = [];
 
         this.set_value = function(newval, setter){
+            
             if(!this.has_value() || setter == this.informant){
                 this.value = newval;
                 this.informant = setter;
@@ -93,7 +94,7 @@
         
         this.forget_value = function(retractor){            
             if (retractor == this.informant){
-                this.informant = null;
+                this.informant = false;
                 for_each_except(retractor, inform_about_no_value, this.constraints)
             }
 
@@ -118,6 +119,10 @@
 
         this.get_value = function(){
             return this.value;
+        }
+
+        this.get_setter = function(){
+            return this.informant;
         }
     }
 
@@ -169,7 +174,7 @@
     function direct(a, b){
         this.a = a;
         this.b = b;
-
+        console.log(this);
         this.I_have_a_value = process_new_value;
         function process_new_value(){
             if(this.a.has_value()){
@@ -242,7 +247,7 @@
         
         this.I_lost_my_value = process_forget_value
         function process_forget_value(){
-            getInput(name).value="--?";
+            getInput(name).value="";
             print_probe("?");
         }
 
@@ -407,7 +412,7 @@
         var eqright = new Connector();
         eqright = genConstraint(arreqright);
         
-        var eqconstraint = direct(eqleft,eqright);
+        var eqconstraint = new direct(eqleft,eqright);
 
     }
     function genInputbox(area, id){
@@ -415,6 +420,7 @@
         var element = document.createElement("input");
         element.id = id;
         element.style = "width:100px;height:40px;border:1;";
+        element.type = "text";
         area.appendChild(element); 
         return element;
     }
@@ -432,10 +438,6 @@
             var input = genInputbox(area, "input_"+dic.keys()[i]);
             input.onblur=blur_event;
         } 
-        
-    
-
-
     }
     //getInput();
     function getVar(inputid){
@@ -447,26 +449,50 @@
     }
 
     function blur_event(){
-        if(this.value == ""){
-            dic.get(getVar(this.id)).forget_value("usr");
+        if(this.readOnly != true){
+            if(this.value == ""){
+                dic.get(getVar(this.id)).forget_value("usr");
+            }
+            else{
+                var val = this.value;
+                console.log("valbeforeforget "+val.toString());
+                dic.get(getVar(this.id)).forget_value("usr");
+                console.log("vallafterforget"+ val.toString());
+                dic.get(getVar(this.id)).set_value(parseInt(val), "usr");
+            }
+            setrestrict();
         }
-        else{
-            dic.get(getVar(this.id)).set_value(parseInt(this.value), "usr");
-        }
-        console.log(dic.getItems());
     }
 
     function focus_event(){
         console.log("focus");
     }
+    function setrestrict(){
+        for(var i=0;i<dic.keys().length;i++){
+            var keyvalue = dic.keys()[i]; 
+            var ct = dic.get(keyvalue);
+            if(ct.get_setter() != "usr" && ct.get_setter() != false){
+                getInput(keyvalue).style.backgroundColor = '#E808E8';
+                getInput(keyvalue).readOnly = 'false';
+            }
+            else
+            {
+                getInput(keyvalue).style.backgroundColor = '#FFFFFF';
+                getInput(keyvalue).readOnly = null;
+            }
+        }
+    }
     function test(){
-        console.log(dic.getItems());
+        console.log(dic.getItems()); 
     }
 </script>
 <input style="width:400px;height:40px;border:1;" type="text" id="formulainput" value = "a+b+c=e+f"/>
 <button style="width:150px;height:50px;border:0;" onclick="generate()">OK</button>
 <button style="width:150px;height:50px;border:0;" onclick="test()">OK</button>
 
+
+
+<input type="text" name="input1" value="不可编辑文本框" readonly="true">
 
 <p id="formarea"></p>
 </body>
