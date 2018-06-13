@@ -450,13 +450,14 @@
 
         var element = document.createElement("input");
         element.id = id;
-        element.style = "width:100px;height:40px;border:1;";
+        element.style = "width:50px;height:20px;border:1;";
         element.style.borderWidth = "1px";
         element.style.borderStyle = "dotted";
         element.style.marginRight = "2px";
         element.style.fontFamily = "consolas";
         element.style.fontSize = "20px";
         element.style.textAlign = "center";
+        element.style.alignSelf = "top"
         element.type = "text";
         area.appendChild(element); 
         return element;
@@ -464,12 +465,13 @@
     function genCommentbox(area,str){
         var element = document.createElement("input");
         //element.id = id;
-        element.style = "width:30px;height:40px;border:1;";
+        element.style = "height:52px;border:1;";
+        element.style.width = String(28*str.length) + "px";
         element.style.borderWidth = "0px";
         element.style.borderStyle = "dotted";
         element.style.marginRight = "2px";
         element.style.fontFamily = "consolas";
-        element.style.fontSize = "20px";
+        element.style.fontSize = "50px";
         element.style.textAlign = "center";
         element.type = "text";
         element.value = str;
@@ -525,12 +527,12 @@
             if(ct.get_setter() != "usr" && ct.get_setter() != false){
                 getInput(keyvalue).style.backgroundColor = '#FF9966';
                 getInput(keyvalue).style.color = '#FFFFFF';
-                getInput(keyvalue).readOnly = 'false';
+                getInput(keyvalue).readOnly = 'readOnly';
             }
             else
             {
                 getInput(keyvalue).style.backgroundColor = '#FFFFFF';
-                getInput(keyvalue).style.color = '#000000';
+                getInput(keyvalue).style.color = '#669933';
 
                 getInput(keyvalue).readOnly = null;
             }
