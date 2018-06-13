@@ -265,6 +265,12 @@
    // b.set_value(3, "usr");
    // document.write(sum.get_value());
     // a.forget_value("usr");
+    //var a = new Connector();
+    //var b = new Connector();
+    //var adderobj = new adder(a,a,b);
+    //var probe_a = new probe('a',a);
+    //var probe_b = new probe('b',b);
+    //a.set_value(2,"usr");
 
     function getFunc(tree){
         if(tree[0] == "+"){
@@ -358,19 +364,17 @@
         }
         return res;
     }
-    str = "a*(c-a)*x+b+c/d+sin(3)=acot(sin(x+y^2))+log(2)";
     //str = "sin(a+b)+3";
     //str = "sin(cos(a+b))+2";
     //str = "a+sin(cos(a+b))+2";
     //str = "a";
     //str = "a+b+c";
-    console.log(splitToComment(str));
     function indexOfOpt(as){
         var brackets = 0;
         var funs = 0;
         var prior = 100;
         var index = -1;
-        for(var i=0;i<as.length;i++){
+        for(var i=as.length-1;i>=0;i--){
             s = as[i];
             if(s=="(" && !funs){
                 brackets++;
@@ -423,7 +427,79 @@
         ar = optSplit(str);
         return parseToTree(ar)
     }
-    
+    function deriv(fxstr, x){
+        var arrfx = parse(fxstr);
+        function iter(afx){
+            if(isTree(afx)){
+                if(afx[0] == "+" || afx[0] == "-"){
+                    return [afx[0], iter(Lt(afx)), iter(Rt(afx))];
+                }
+                else if(afx[0] == "*"){
+                    return ["+", ["*", iter(Lt(afx)), Rt(afx)], ["*", Lt(afx), iter(Rt(afx))]];
+                }
+            }
+            else{
+                if(afx == x){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+            
+        }
+        return iter(arrfx);
+    }
+
+    function getValue(afx, x, val){
+        function iter(afx){
+            if(isTree(afx)){
+                if(afx[0] == "+"){
+                    return (iter(Lt(afx)) + iter(Rt(afx)));
+                }
+                if(afx[0] == "-"){
+                    return (iter(Lt(afx)) - iter(Rt(afx)));
+                }
+                else if(afx[0] == "*"){
+                    return (iter(Lt(afx)) * iter(Rt(afx)));
+                }    
+                else if(afx[0] == "/"){
+                    return (iter(Lt(afx)) / iter(Rt(afx)));
+                }    
+                else{
+                    console.log("no operation setted");
+                }
+            }
+            else{
+                if(afx == x){
+                    return val;
+                }
+                else{
+                    return Number(afx);
+                }
+            }
+        }
+        return iter(afx)
+    }
+
+    function solve(func,x,start){
+        var fx = parse(func);
+        var dfx = deriv(func, x);
+        var arx = [];
+        arx[0] = start;
+        var delta = 9999;
+        for(var i = 0;i<20000;i++){
+            arx[i+1] = arx[i]-getValue(fx,x,arx[i])/getValue(dfx,x,arx[i]);
+            delta = arx[i+1] - arx[i];
+            if(Math.abs(delta) < 0.0000001){
+               return arx[i+1];
+            }
+        }
+        return null;
+    }
+
+    var str = "x*x*x-3*x+1";
+    console.log(solve(str,"x",10));
     function eqLeft(str){
         return str.split("=")[0];
     }
@@ -434,12 +510,15 @@
 
     function formulaToConstraint(str) {
         var arreqleft = parse(eqLeft(str));
+        
         console.log(eqLeft(str));
+        console.log(arreqleft);
         console.log(eqRight(str));
         var eqleft = new Connector();
         eqleft = genConstraint(arreqleft);
 
         var arreqright = parse(eqRight(str));
+        console.log(arreqright);
         var eqright = new Connector();
         eqright = genConstraint(arreqright);
         
