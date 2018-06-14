@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>    
+<body>
+
+<script>
+
+    function isArray(o) {
+        return Object.prototype.toString.call(o) == '[object Array]';
+    }
+    function Dictionary() {  
+        var items = {};  
+
+        this.has = function (key) {  
+            return key in items;  
+        };  
+
+        this.set = function (key, value) {  
+            items[key] = value;  
+        };  
+
+        this.remove = function (key) {  
+            if (this.has(key)) {  
+                delete items[key];  
+                return true;  
+            }  
+            return false;  
+        };  
+
+        this.get = function (key) {  
+            return this.has(key) ? items[key] : undefined;  
+        };  
+
+        this.values = function () {  
+            var values = [];  
+            for (var k in items) {  
+                if (this.has(k)) {  
+                    values.push(items[k]);  
+                }  
+            }  
+            return values;  
+        };  
+
+        this.keys = function(){
+            var keys = [];
+            for(var k in items){
+                keys.push(k);
+            }
+            return keys;
+        }
+
+        this.clear = function () {  
+            items = {};  
+        };  
+
+        this.size = function () {  
+            var count = 0;  
+            for (var prop in items) {  
+                if (items.hasOwnProperty(prop)) {  
+                    ++count;  
+                }  
+            }  
+            return count;  
+        };  
+
+        this.getItems = function () {  
+            return items;  
+        };  
+    }  
+
+
+
+    function Connector(){
+        this.value = false;
+        this.informant = false;
+        this.constraints = [];
+
+        this.set_value = function(newval, setter){
+            
+            if(!this.has_value() || setter == this.informant){
+                this.value = newval;
+                this.informant = setter;
+                for_each_except(setter, inform_about_value, this.constraints);
+
+            }
+            else if(!(this.value==newval)){
+                console.log("contradiction");
+                console.log("value: " + string(this.value));
+                console.log("newval: " + string(newval));
+            }
+        }
+        
+        this.forget_value = function(retractor){            
+            if (retractor == this.informant){
+                this.informant = false;
+                for_each_except(retractor, inform_about_no_value, this.constraints)
+            }
+
+        }
+        
+        this.connect = function(new_constraint){
+            if(!memq(new_constraint, this.constraints)){
+                this.constraints.unshift(new_constraint);
+            }
+            if(this.has_value()){
+                inform_about_value(new_constraint);
+            }
+
+        }
+        
+        this.has_value = function(){
+            if(this.informant){
+                return true;
+            }
+            return false;
+        }
+
+        this.get_value = function(){
+            return this.value;
+        }
+
+        this.get_setter = function(){
+            return this.informant;
+        }
+    }
+
+    function inform_about_value(constraint){
+        constraint.I_have_a_value();
+    }
+
+    function inform_about_no_value(constraint){
+        constraint.I_lost_my_value();
+    }
+
+    function for_each_except(exception, procedure, list){
+        function loop(items){
+            if(items == null){
+                console.log("done");
+            }
+            else if(items[0] == exception){
+                loop(rest(items));
+            }
+            else{
+                procedure(first(items));
+                loop(rest(items));
+            }
+        }
+        loop(list);
+    }
+
+    function first(arr){
+        return arr[0];
+    }
+
+    function rest(arr){
+        if(arr[1] != null){
+            return arr.slice(1,arr.length);
+        }
+        return null;
+    }
+
+    function memq(element, arr){
+        var i = arr.length;
+        while(i--){
+            if(arr[i] == element){
+                return true;
+            }
+        }
+        return false;
+
+    }
+    function direct(a, b){
+        this.a = a;
+        this.b = b;
+        console.log(this);
+        this.I_have_a_value = process_new_value;
+        function process_new_value(){
+            if(this.a.has_value()){
+                this.b.set_value(this.a.get_value(),this);
+            }
+            else if(this.b.has_value()){
+                this.a.set_value(this.b.get_value(),this);
+            }
+        }
+        
+        this.I_lost_my_value = process_forget_value;
+        function process_forget_value(){
+            this.a.forget_value(this);
+            this.b.forget_value(this);
+
+        }
+
+        this.a.connect(this);
+        this.b.connect(this);
+    } 
+
+    function adder(a, b, sum){
+        this.a = a;
+        this.b = b;
+        this.sum = sum;
+
+        this.I_have_a_value = process_new_value;
+        function process_new_value(){
+            if(this.a.has_value() && this.b.has_value()){
+                this.sum.set_value((this.a.get_value() + this.b.get_value()),this);
+            }
+            else if(this.a.has_value() && this.sum.has_value()){
+                this.b.set_value((this.sum.get_value() - this.a.get_value()),this);
+            }
+            else if(this.b.has_value() && this.sum.has_value()){
+                this.a.set_value((this.sum.get_value() - this.b.get_value()),this);
+            }
+        }
+        
+        this.I_lost_my_value = process_forget_value;
+        function process_forget_value(){
+            this.a.forget_value(this);
+            this.b.forget_value(this);
+            this.sum.forget_value(this);
+
+        }
+
+        this.a.connect(this);
+        this.b.connect(this);
+        this.sum.connect(this);
+    }
+
+    function subtractor(){}
+
+    function multiplier(){}
+
+
+    function divider(){}
+
+    function probe(name, connector){
+        function print_probe(value){
+            console.log("Probe: " + name + "=" + value.toString());
+        }
+
+        this.I_have_a_value = process_new_value;
+        function process_new_value(){
+            getInput(name).value=connector.get_value();
+            print_probe(connector.get_value());
+        }
+        
+        this.I_lost_my_value = process_forget_value
+        function process_forget_value(){
+            getInput(name).value="";
+            print_probe("?");
+        }
+
+        connector.connect(this);
+    }
+
+   // var a = new Connector();
+   // var b = new Connector();
+   // var sum = new Connector();
+   // var adderojb = new adder(a, b, sum);
+   // var porbe_a = new probe('a', a);
+   // var probe_b = new probe('b', b);
+   // var probe_sum = new probe('sum', sum);
+   // a.set_value(2, "usr");
+   // b.set_value(3, "usr");
+   // document.write(sum.get_value());
+    // a.forget_value("usr");
+    //var a = new Connector();
+    //var b = new Connector();
+    //var adderobj = new adder(a,a,b);
+    //var probe_a = new probe('a',a);
+    //var probe_b = new probe('b',b);
+    //a.set_value(2,"usr");
+
+    function getFunc(tree){
+        if(tree[0] == "+"){
+            return adder;
+        }
+        else if(tree[0] == "-"){
+            return subtractor;
+        }
+        else if(tree[0] == "*"){
+            return multiplier;
+        }
+        else if(tree[0] == "/"){
+            return divider;
+        }
+        
+    }
+
+    function Lt(tree){
+        return tree[1];
+    }
+
+    function Rt(tree){
+        return tree[2];
+    }
+
+    function isTree(tree){
+        return isArray(tree);
+    }
+
+    var dic = new Dictionary(); 
+    var probe_dic = new Dictionary();
+    function convertToConnector(c){
+        var ct = new Connector();
+        var porbe = new probe(c, ct)
+        dic.set(c,ct);
+        probe_dic.set(c,probe);
+        return ct;
+    }
+
+
+    function genConstraint(tree){
+        if(isTree(tree)){
+            var rt = new Connector();
+            //var probename = "probe_" + tree[0];
+            //var porbe = new probe(probename, rt)
+            var cst = new (getFunc(tree))(genConstraint(Lt(tree)),genConstraint(Rt(tree)),rt);
+            return rt;
+        }
+        else{
+            return convertToConnector(tree);
+        }
+    }
+
+
+
+    //---------------------------------------------------------------------------
+    function optSplit(str){
+        var regx = /\+|\-|\*|\/|\(|\)|\^|=|ln|log|sin|cos|tan|cot|asin|acos|atan|acot/g;
+        var s1 = str.replace(regx,' $& ');
+        var s2 = s1.replace(/\s+/g,' ');
+        var s3 = s2.replace(/^\s+|\s+$/,'');
+        return s3.split(" ");
+    
+    }
+    function isOp(str){
+        var regx = /\+|\-|\*|\/|\(|\)|\^|=|ln|log|sin|cos|tan|cot|asin|acos|atan|acot/g;
+        if(str.match(regx)!=null ){
+            return true;
+        }
+        return false;
+
+    }
+    function splitToComment(str){
+        var as = optSplit(str);
+        var res = [];
+        idx = 0;
+        lastidx = -1;
+        console.log(as.length);
+        for(var i=0;i<as.length;i++){
+            if(lastidx != idx){
+                lastidx = idx;
+                res[idx] = "";
+            }
+            if(isOp(as[i])){
+                res[idx] += as[i];
+            }
+            else{
+                res[idx] += as[i];
+                idx++;
+            }
+        }
+        return res;
+    }
+    //str = "sin(a+b)+3";
+    //str = "sin(cos(a+b))+2";
+    //str = "a+sin(cos(a+b))+2";
+    //str = "a";
+    //str = "a+b+c";
+    function indexOfOpt(as){
+        var brackets = 0;
+        var funs = 0;
+        var prior = 100;
+        var index = -1;
+        for(var i=as.length-1;i>=0;i--){
+            s = as[i];
+            if(s=="(" && !funs){
+                brackets++;
+            }
+            else if(s==")" && !funs){
+                brackets--
+            }
+            else if((s=="+"||s=="-")&&(brackets==0)&&(funs==0)&&(prior>1)){
+                index = i;
+                prior = 1;
+            }
+            else if((s=="*"||s=="/")&&(brackets==0)&&(funs==0)&&(prior>2)){
+                index = i;
+                prior = 2;
+            }
+            else if((s=="sin"||s=="cos")&&(brackets==0)&&(prior>=3)){
+                funs++;
+                index = i;
+                prior = 3;
+            }
+            else if(s==")"&&(funs>0)){
+                funs--;
+            }
+        }
+        return index;
+    }
+    function clearArrBracket(as){
+        if(as[0]=="("&&as[as.length-1]==")"){
+             return clearArrBracket(as.slice(1, as.length - 1));
+            
+        }
+        else{
+            return as;
+        }
+    }
+    function parseToTree(as){
+        as = clearArrBracket(as);
+        idx = indexOfOpt(as);
+        if(idx == -1){
+            return as[0];
+        }
+        else
+        {
+            var leftTree = as.slice(0,idx);
+            var rightTree = as.slice(idx+1,ar.length);
+            return [as[idx],parseToTree(leftTree),parseToTree(rightTree)];
+        }
+    }
+    function parse(str){
+        ar = optSplit(str);
+        return parseToTree(ar)
+    }
+    function deriv(fxstr, x){
+        var arrfx = parse(fxstr);
+        function iter(afx){
+            if(isTree(afx)){
+                if(afx[0] == "+" || afx[0] == "-"){
+                    return [afx[0], iter(Lt(afx)), iter(Rt(afx))];
+                }
+                else if(afx[0] == "*"){
+                    return ["+", ["*", iter(Lt(afx)), Rt(afx)], ["*", Lt(afx), iter(Rt(afx))]];
+                }
+            }
+            else{
+                if(afx == x){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+            
+        }
+        return iter(arrfx);
+    }
+
+    function getValue(afx, x, val){
+        function iter(afx){
+            if(isTree(afx)){
+                if(afx[0] == "+"){
+                    return (iter(Lt(afx)) + iter(Rt(afx)));
+                }
+                if(afx[0] == "-"){
+                    return (iter(Lt(afx)) - iter(Rt(afx)));
+                }
+                else if(afx[0] == "*"){
+                    return (iter(Lt(afx)) * iter(Rt(afx)));
+                }    
+                else if(afx[0] == "/"){
+                    return (iter(Lt(afx)) / iter(Rt(afx)));
+                }    
+                else{
+                    console.log("no operation setted");
+                }
+            }
+            else{
+                if(afx == x){
+                    return val;
+                }
+                else{
+                    return Number(afx);
+                }
+            }
+        }
+        return iter(afx)
+    }
+
+    function solve(func,x,start){
+        var fx = parse(func);
+        var dfx = deriv(func, x);
+        var arx = [];
+        arx[0] = start;
+        var delta = 9999;
+        for(var i = 0;i<20000;i++){
+            arx[i+1] = arx[i]-getValue(fx,x,arx[i])/getValue(dfx,x,arx[i]);
+            delta = arx[i+1] - arx[i];
+            if(Math.abs(delta) < 0.0000001){
+               return arx[i+1];
+            }
+        }
+        return null;
+    }
+
+    var str = "x*x*x-3*x+1";
+    console.log(solve(str,"x",10));
+    function eqLeft(str){
+        return str.split("=")[0];
+    }
+
+    function eqRight(str){
+        return str.split("=")[1];
+    }
+
+    function formulaToConstraint(str) {
+        var arreqleft = parse(eqLeft(str));
+        
+        console.log(eqLeft(str));
+        console.log(arreqleft);
+        console.log(eqRight(str));
+        var eqleft = new Connector();
+        eqleft = genConstraint(arreqleft);
+
+        var arreqright = parse(eqRight(str));
+        console.log(arreqright);
+        var eqright = new Connector();
+        eqright = genConstraint(arreqright);
+        
+        var eqconstraint = new direct(eqleft,eqright);
+
+    }
+    function genInputbox(area, id){
+
+        var element = document.createElement("input");
+        element.id = id;
+        element.style = "width:50px;height:20px;border:1;";
+        element.style.borderWidth = "1px";
+        element.style.borderStyle = "dotted";
+        element.style.marginRight = "2px";
+        element.style.fontFamily = "consolas";
+        element.style.fontSize = "20px";
+        element.style.textAlign = "center";
+        element.style.alignSelf = "top"
+        element.type = "text";
+        area.appendChild(element); 
+        return element;
+    }
+    function genCommentbox(area,str){
+        var element = document.createElement("input");
+        //element.id = id;
+        element.style = "height:52px;border:1;";
+        element.style.width = String(28*str.length) + "px";
+        element.style.borderWidth = "0px";
+        element.style.borderStyle = "dotted";
+        element.style.marginRight = "2px";
+        element.style.fontFamily = "consolas";
+        element.style.fontSize = "50px";
+        element.style.textAlign = "center";
+        element.type = "text";
+        element.value = str;
+        area.appendChild(element); 
+        return element;
+    }
+    function generate(){
+        dic.clear();
+        var obj = document.getElementById("formulainput");
+        var str = obj.value;
+        formulaToConstraint(str)
+
+        var area = document.getElementById("formarea");
+        area.innerHTML = "";
+        var inputboxes = [];
+        var comments = splitToComment(str);
+        for(var i in dic.keys()){
+            genCommentbox(area,comments[i]);
+            var input = genInputbox(area, "input_"+dic.keys()[i]);
+            input.onblur=blur_event;
+        } 
+    }
+    //getInput();
+    function getVar(inputid){
+        return inputid.split("_")[1];
+    }
+
+    function getInput(varname){
+        return document.getElementById("input_"+varname);
+    }
+
+    function blur_event(){
+        if(this.readOnly != true){
+            if(this.value == ""){
+                dic.get(getVar(this.id)).forget_value("usr");
+            }
+            else{
+                var val = this.value;
+                dic.get(getVar(this.id)).forget_value("usr");
+                dic.get(getVar(this.id)).set_value(parseInt(val), "usr");
+            }
+            setrestrict();
+        }
+    }
+
+    function focus_event(){
+        console.log("focus");
+    }
+    function setrestrict(){
+        for(var i=0;i<dic.keys().length;i++){
+            var keyvalue = dic.keys()[i]; 
+            var ct = dic.get(keyvalue);
+            if(ct.get_setter() != "usr" && ct.get_setter() != false){
+                getInput(keyvalue).style.backgroundColor = '#FF9966';
+                getInput(keyvalue).style.color = '#FFFFFF';
+                getInput(keyvalue).readOnly = 'readOnly';
+            }
+            else
+            {
+                getInput(keyvalue).style.backgroundColor = '#FFFFFF';
+                getInput(keyvalue).style.color = '#669933';
+
+                getInput(keyvalue).readOnly = null;
+            }
+        }
+    }
+    function test(){
+        getInput("a").style.backgroundColor = "#FFFFFF"; 
+        getInput("a").style.borderColor = "#FFFFFF"; 
+        
+    }
+</script>
+<input style="width:400px;height:40px;padding:0px;border-style:solid; border-width:0px 0px 1px 0px;border-color: #999966; font-family:consolas;font-size: 20px;" type="text" id="formulainput" value = "a+b+c=e+f"/>
+<button style="width:100px;height:40px;border:1px;border-radius: 3px;background-color: #FFFFFF; box-shadow:1px 1px 1px 1px #CCCC00;font-family:consolas;font-size: 20px;" onclick="generate()">OK</button>
+<!--<button style="width:150px;height:50px;border:0;" onclick="test()">OK</button>-->
+
+
+<p id="formarea"></p>
+</body>
+</html>
