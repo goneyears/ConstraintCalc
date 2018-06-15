@@ -120,6 +120,17 @@ function eqRight(str){
     return str.split("=")[1];
 }
 
+function log(v){
+    console.log(v);
+}
 
-
-
+function logger(str,v){
+    log(str+"------start------");
+    log(v);
+    log(str+"------end--------");
+}
+function lgg(v){
+    console.log(v);
+    return lgg;
+}
+//lgg("dsdfsf")("sdfsdf")("sdfadfsf");

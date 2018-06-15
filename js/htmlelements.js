@@ -19,7 +19,7 @@ function splitToComment(str){
     }
     return res;
 }
-
+var dic = [];
 function genInputbox(area, id){
     var element = document.createElement("input");
     element.id = id;
@@ -51,17 +51,30 @@ function genCommentbox(area,str){
     area.appendChild(element); 
     return element;
 }
+function eqLeft(str){
+    return str.split("=")[0];
+}
+
+function eqRight(str){
+    return str.split("=")[1];
+}
 function generate(){
     var obj = document.getElementById("formulainput");
     var str = obj.value;
+    //var afx = equationtofunc(str);
+    var dicleft = treetoArray(parse(eqLeft(str)));
+    logger("ddd",dicleft);
+    var dicright = treetoArray(parse(eqRight(str)));
+    log(dicright);
+    dic = Array.prototype.push.apply(dicleft,dicright);
+    //log(dic);
 
     var area = document.getElementById("formarea");
     area.innerHTML = "";
-    var inputboxes = [];
     var comments = splitToComment(str);
-    for(var i in dic.keys()){
+    for(var i=0; i<dic.length; i++){
         genCommentbox(area,comments[i]);
-        var input = genInputbox(area, "input_"+dic.keys()[i]);
+        var input = genInputbox(area, "input_"+dic[i]);
         input.onblur=blur_event;
     } 
 }

@@ -2,7 +2,7 @@ function optSplit(str){
     var regx = /\+|\-|\*|\/|\(|\)|\^|=|ln|log|sin|cos|tan|cot|asin|acos|atan|acot/g;
     var s1 = str.replace(regx,' $& ');
     var s2 = s1.replace(/\s+/g,' ');
-    var s3 = s2.replace(/^\s+|\s+$/,'');
+    var s3 = s2.replace(/^\s+|\s+$/g,'');
     return s3.split(" ");
 
 }
@@ -22,10 +22,10 @@ function indexOfOpt(as){
     var index = -1;
     for(var i=as.length-1;i>=0;i--){
         s = as[i];
-        if(s=="(" && !funs){
+        if(s==")" && !funs){
             brackets++;
         }
-        else if(s==")" && !funs){
+        else if(s=="(" && !funs){
             brackets--
         }
         else if((s=="+"||s=="-")&&(brackets==0)&&(funs==0)&&(prior>1)){
@@ -71,4 +71,20 @@ function parseToTree(as){
 function parse(str){
     ar = optSplit(str);
     return parseToTree(ar)
+}
+
+function treetoArray(tree){
+    var dic = [];
+    function iter(tree){
+        if(isTree(tree)){
+            iter(Lt(tree))
+            iter(Rt(tree));
+        }
+        else{
+            dic.push(tree);
+        }
+    }
+
+    iter(tree);
+    return dic;
 }
