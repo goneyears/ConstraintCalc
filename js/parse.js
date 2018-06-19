@@ -1,5 +1,9 @@
+function opts(){
+    return /\+|\-|\*|\/|\(|\)|\^|=|ln|log|sin|cos|tan|cot|asin|acos|atan|acot/g;
+ 
+}
 function optSplit(str){
-    var regx = /\+|\-|\*|\/|\(|\)|\^|=|ln|log|sin|cos|tan|cot|asin|acos|atan|acot/g;
+    var regx = opts(); 
     var s1 = str.replace(regx,' $& ');
     var s2 = s1.replace(/\s+/g,' ');
     var s3 = s2.replace(/^\s+|\s+$/g,'');
@@ -7,12 +11,40 @@ function optSplit(str){
 
 }
 function isOp(str){
-    var regx = /\+|\-|\*|\/|\(|\)|\^|=|ln|log|sin|cos|tan|cot|asin|acos|atan|acot/g;
+    var regx = opts(); 
     if(str.match(regx)!=null ){
         return true;
     }
     return false;
+}
 
+function isVar(str){
+    var regx =/^[a-z]\w*$/i;
+    o = str.match(regx);
+    if(o!=null){
+        return true;
+    }
+    return false;
+}
+Array.prototype.isInArray = function(v){
+    if(this.indexOf(v) >=0 ){
+        return true;
+    }
+    return false;
+}
+function vars(str){
+    as = optSplit(str);
+    this.count = 0;
+    this.name = [];
+    for(var i=0; i<as.length; i++){
+        if(isVar(as[i])){
+            if(! this.name.isInArray(as[i])){
+                this.count++;
+                this.name.push(as[i]) ;
+
+            }
+        }
+    }
 }
 
 function indexOfOpt(as){

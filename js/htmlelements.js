@@ -3,7 +3,6 @@ function splitToComment(str){
     var res = [];
     idx = 0;
     lastidx = -1;
-    console.log(as.length);
     for(var i=0;i<as.length;i++){
         if(lastidx != idx){
             lastidx = idx;
@@ -20,6 +19,7 @@ function splitToComment(str){
     return res;
 }
 var dic = [];
+var formula;
 function genInputbox(area, id){
     var element = document.createElement("input");
     element.id = id;
@@ -61,13 +61,11 @@ function eqRight(str){
 function generate(){
     var obj = document.getElementById("formulainput");
     var str = obj.value;
+    formula = str;//add string operate to str,trim or replace spaces;
     //var afx = equationtofunc(str);
     var dicleft = treetoArray(parse(eqLeft(str)));
-    logger("ddd",dicleft);
     var dicright = treetoArray(parse(eqRight(str)));
-    log(dicright);
-    dic = Array.prototype.push.apply(dicleft,dicright);
-    //log(dic);
+    dic = dicleft.concat(dicright); 
 
     var area = document.getElementById("formarea");
     area.innerHTML = "";
@@ -87,15 +85,29 @@ function getInput(varname){
     return document.getElementById("input_"+varname);
 }
 
+function getVarValue(varname){
+    return getInput(varname).value;
+}
+
 function blur_event(){
+    var varname = getVar(this.id);
+    var varvalue = this.value;
+    
     if(this.readOnly != true){
         if(this.value == ""){
-            //dic.get(getVar(this.id)).forget_value("usr");
+            formula = substitute(formula,varvalue,varname);
         }
         else{
-            var val = this.value;
-            //dic.get(getVar(this.id)).forget_value("usr");
-            //dic.get(getVar(this.id)).set_value(parseInt(val), "usr");
+            varname = getVar(this.id);
+            varvalue = this.value;
+            formula = substitute(formula,varname,varvalue);
+            var res = autosolve(formula);
+            if(res!=null){
+                log(formula);
+                log(res.varname);
+                log(res.solution);
+                getInput(res.varname).value = res.solution;
+            }
         }
     }
 }

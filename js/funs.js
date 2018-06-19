@@ -3,7 +3,9 @@ function equationtofunc(eqstr){
     var arreqright = parse(eqRight(eqstr));
     return ["-", arreqleft, arreqright];
 }
-
+function substitute(eqstr,varname,varvalue){
+    return eqstr.replace(varname,varvalue);
+}
 function deriv(arrfx, x){
     function iter(afx){
         if(isTree(afx)){
@@ -72,7 +74,7 @@ function findzero(afx,x,start){
     var arx = [];
     arx[0] = start;
     var delta = 9999;
-    for(var i = 0;i<20000;i++){
+    for(var i = 0;i<2000;i++){
         arx[i+1] = arx[i]-getValue(afx,x,arx[i])/getValue(dfx,x,arx[i]);
         delta = arx[i+1] - arx[i];
         if(Math.abs(delta) < 0.0000001){
@@ -82,9 +84,19 @@ function findzero(afx,x,start){
     return null;
 }
 
-function solve(fxstr, x, start){
-    var afx = parse(fxstr);
+function solve(eqstr, x, start){
+    var afx = equationtofunc(eqstr);
     return findzero(afx,x,start);
+}
+
+
+function autosolve(fstr){
+    var variables = new vars(fstr);
+    if(variables.count == 1){
+        var x = variables.name;
+        return {varname:x, solution:solve(fstr, x, 10)};
+    }
+    return null;
 }
 //var str = "x*x*x-3*x+1";
 //str = "sin(x+5)";
@@ -92,5 +104,7 @@ function solve(fxstr, x, start){
 //var afx = parse(str);
 //logger("getValue",getValue(afx,"x",5));
 //console.log(solve(str,"x",10));
-var eqa = "x+5=0";
-log(solve(eqa, "x", 10));
+var maxguess = Number.MAX_VALUE;
+maxguess = 10;
+var eqa = "1+2+3=4+f*f";
+log(solve(eqa, "f", maxguess));
