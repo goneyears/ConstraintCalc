@@ -19,6 +19,7 @@ function splitToComment(str){
     return res;
 }
 var dic = [];
+var varInPair = new Dictionary();
 var formula;
 function genInputbox(area, id){
     var element = document.createElement("input");
@@ -59,26 +60,36 @@ function eqRight(str){
     return str.split("=")[1];
 }
 function generate(){
+    varInPair.clear();
+
     var obj = document.getElementById("formulainput");
     var str = obj.value;
     formula = str;//add string operate to str,trim or replace spaces;
-    //var afx = equationtofunc(str);
-    var dicleft = treetoArray(parse(eqLeft(str)));
-    var dicright = treetoArray(parse(eqRight(str)));
+    var dicleft = leaftoArray(parse(eqLeft(str)));
+    var dicright = leaftoArray(parse(eqRight(str)));
     dic = dicleft.concat(dicright); 
-
+    log(dic);
     var area = document.getElementById("formarea");
     area.innerHTML = "";
     var comments = splitToComment(str);
+    var inputs = [];
     for(var i=0; i<dic.length; i++){
         genCommentbox(area,comments[i]);
-        var input = genInputbox(area, "input_"+dic[i]);
+        var input = genInputbox(area, "input_"+i.toString()+"_"+dic[i]);
+        if(varInPair.has(dic[i])){
+            varInPair.set(dic[i], (varInPair.get(dic[i])).concat([input]));
+        }
+        else{
+            varInPair.set(dic[i], [input]);
+
+        }
         input.onblur=blur_event;
     } 
+    log(varInPair.getItems());
 }
-//getInput();
+
 function getVar(inputid){
-    return inputid.split("_")[1];
+    return inputid.split("_")[2];
 }
 
 function getInput(varname){

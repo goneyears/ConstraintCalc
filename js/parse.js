@@ -105,7 +105,7 @@ function parse(str){
     return parseToTree(ar)
 }
 
-function treetoArray(tree){
+function leaftoArray(tree){
     var dic = [];
     function iter(tree){
         if(isTree(tree)){

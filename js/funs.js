@@ -105,6 +105,6 @@ function autosolve(fstr){
 //logger("getValue",getValue(afx,"x",5));
 //console.log(solve(str,"x",10));
 var maxguess = Number.MAX_VALUE;
-maxguess = 10;
+maxguess = 1;
 var eqa = "1+2+3=4+f*f";
 log(solve(eqa, "f", maxguess));
