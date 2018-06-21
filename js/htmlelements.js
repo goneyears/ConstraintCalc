@@ -18,13 +18,13 @@ function splitToComment(str){
     }
     return res;
 }
-var dic = [];
+var vars = [];
 var varInPair = new Dictionary();
 var formula;
 function genInputbox(area, id){
     var element = document.createElement("input");
     element.id = id;
-    element.style = "width:50px;height:20px;border:1;";
+    element.style = "width:55px;height:20px;border:1;";
     element.style.borderWidth = "1px";
     element.style.borderStyle = "dotted";
     element.style.marginRight = "2px";
@@ -48,6 +48,7 @@ function genCommentbox(area,str){
     element.style.fontSize = "50px";
     element.style.textAlign = "center";
     element.type = "text";
+    element.readOnly = "readOnly";
     element.value = str;
     area.appendChild(element); 
     return element;
@@ -67,20 +68,20 @@ function generate(){
     formula = str;//add string operate to str,trim or replace spaces;
     var dicleft = leaftoArray(parse(eqLeft(str)));
     var dicright = leaftoArray(parse(eqRight(str)));
-    dic = dicleft.concat(dicright); 
-    log(dic);
+    vars = dicleft.concat(dicright); 
+    log(vars);
     var area = document.getElementById("formarea");
     area.innerHTML = "";
     var comments = splitToComment(str);
     var inputs = [];
-    for(var i=0; i<dic.length; i++){
+    for(var i=0; i<vars.length; i++){
         genCommentbox(area,comments[i]);
-        var input = genInputbox(area, "input_"+i.toString()+"_"+dic[i]);
-        if(varInPair.has(dic[i])){
-            varInPair.set(dic[i], (varInPair.get(dic[i])).concat([input]));
+        var input = genInputbox(area, "input_"+i.toString()+"_"+vars[i]);
+        if(varInPair.has(vars[i])){
+            varInPair.set(vars[i], (varInPair.get(vars[i])).concat([input]));
         }
         else{
-            varInPair.set(dic[i], [input]);
+            varInPair.set(vars[i], [input]);
 
         }
         input.onblur=blur_event;
@@ -93,7 +94,14 @@ function getVar(inputid){
 }
 
 function getInput(varname){
-    return document.getElementById("input_"+varname);
+    return varInPair.get(varname);
+}
+
+function displayVarValue(varname, value){
+    var inputboxs = getInput(varname);
+    for(var i=0; i<inputboxs.length; i++){
+        inputboxs[i].value = value;
+    }
 }
 
 function getVarValue(varname){
@@ -117,7 +125,7 @@ function blur_event(){
                 log(formula);
                 log(res.varname);
                 log(res.solution);
-                getInput(res.varname).value = res.solution;
+                displayVarValue(res.varname, res.solution);
             }
         }
     }
@@ -127,9 +135,9 @@ function focus_event(){
     console.log("focus");
 }
 function setrestrict(){
-    for(var i=0;i<dic.keys().length;i++){
-        var keyvalue = dic.keys()[i]; 
-        var ct = dic.get(keyvalue);
+    for(var i=0;i<vars.keys().length;i++){
+        var keyvalue = vars.keys()[i]; 
+        var ct = vars.get(keyvalue);
         if(ct.get_setter() != "usr" && ct.get_setter() != false){
             getInput(keyvalue).style.backgroundColor = '#FF9966';
             getInput(keyvalue).style.color = '#FFFFFF';

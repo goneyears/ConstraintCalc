@@ -32,7 +32,7 @@ Array.prototype.isInArray = function(v){
     }
     return false;
 }
-function vars(str){
+function Variables(str){
     as = optSplit(str);
     this.count = 0;
     this.name = [];

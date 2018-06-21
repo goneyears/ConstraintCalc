@@ -91,7 +91,7 @@ function solve(eqstr, x, start){
 
 
 function autosolve(fstr){
-    var variables = new vars(fstr);
+    var variables = new Variables(fstr);
     if(variables.count == 1){
         var x = variables.name;
         return {varname:x, solution:solve(fstr, x, 10)};
