@@ -103,11 +103,27 @@ function displayVarValue(varname, value){
         inputboxs[i].value = value;
     }
 }
+function restrictVarInput(varname){
+    var inputboxs = getInput(varname);
+    for(var i=0; i<inputboxs.length; i++){
+        inputboxs[i].style.backgroundColor = '#FF9966';
+        inputboxs[i].style.color = '#FFFFFF';
+        inputboxs[i].readOnly = 'readOnly';
+    }
+}
+function freeVarInput(varname){
+    var inputboxs = getInput(varname);
+    for(var i=0; i<inputboxs.length; i++){
+        inputboxs[i].style.backgroundColor = '#FFFFFF';
+        inputboxs[i].style.color = '#669933';
+        inputboxs[i].readOnly = null;
+    }
+}
 
 function getVarValue(varname){
     return getInput(varname).value;
 }
-
+var lastvar = "";
 function blur_event(){
     var varname = getVar(this.id);
     var varvalue = this.value;
@@ -115,17 +131,20 @@ function blur_event(){
     if(this.readOnly != true){
         if(this.value == ""){
             formula = substitute(formula,varvalue,varname);
+            log(formula);
+            freeVarInput(lastvar);
         }
         else{
             varname = getVar(this.id);
             varvalue = this.value;
+            displayVarValue(varname, varvalue);//display other inputbox with the same variable
             formula = substitute(formula,varname,varvalue);
+            log(formula);
             var res = autosolve(formula);
             if(res!=null){
-                log(formula);
-                log(res.varname);
-                log(res.solution);
                 displayVarValue(res.varname, res.solution);
+                restrictVarInput(res.varname);
+                lastvar = res.varname;
             }
         }
     }
@@ -147,7 +166,6 @@ function setrestrict(){
         {
             getInput(keyvalue).style.backgroundColor = '#FFFFFF';
             getInput(keyvalue).style.color = '#669933';
-
             getInput(keyvalue).readOnly = null;
         }
     }
