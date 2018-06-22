@@ -89,6 +89,9 @@ function solve(eqstr, x, start){
     return findzero(afx,x,start);
 }
 
+function atsolve(afx){
+    
+}
 
 function autosolve(fstr){
     var variables = new Variables(fstr);
