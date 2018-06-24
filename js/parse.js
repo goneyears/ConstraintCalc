@@ -35,13 +35,13 @@ Array.prototype.isInArray = function(v){
 function aVariables(afx){
     this.count = 0;
     this.name = [];
+    var that = this;
     function iter(af){
         if(isTree(af)){
             var ilt = iter(Lt(af));
             var irt = iter(Rt(af));
             if(ilt != null && irt != null){
-                return iter(Lt(af)).concat(iter(Rt(af)));
-                //return ilt.concat(irt);
+                return ilt.concat(irt);
             }
             else if(ilt == null && irt != null){
                 return irt; 
@@ -55,7 +55,8 @@ function aVariables(afx){
         }
         else{
             if(isVar(af)){
-                this.count++;
+                that.count += 1;
+                log(that.count);
                 log(af);
                 return [af];
             }
