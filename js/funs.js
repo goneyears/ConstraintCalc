@@ -83,7 +83,6 @@ function findzero(afx,x,start){
     }
     return null;
 }
-
 function solve(eqstr, x, start){
     var afx = equationtofunc(eqstr);
     return findzero(afx,x,start);
