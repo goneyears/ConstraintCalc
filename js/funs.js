@@ -15,16 +15,21 @@ function asubstitute(afx,ori,subs){
 }
 function treesubstitute(afx,ori,subs){
     if(isTree(afx)){
-        treesubstitute(Lt(afx));
-        treesubstitute(Rt(afx));
+        return [afx[0],treesubstitute(Lt(afx), ori, subs),treesubstitute(Rt(afx), ori, subs)];
     }
     else{
         if(afx == ori){
-            afx = subs;
+            log("eee");
+            return subs;
+        }
+        else{
+            return afx;
         }
     }
 }
-
+var aaa = [1, 2, 3];
+aaa = treesubstitute(aaa, 2, 5);
+log(aaa);
 function deriv(arrfx, x){
     function iter(afx){
         if(isTree(afx)){
@@ -111,7 +116,7 @@ function atsolve(afx){
     var variables = new aVariables(afx);
     if(variables.count == 1){
         var x = variables.name[0];
-        return {varname:x, soultion:findzero(afx,x,10)};
+        return {varname:x, solution:findzero(afx,x,10)};
     }
     return null;
 }
@@ -130,9 +135,9 @@ function autosolve(fstr){
 //var afx = parse(str);
 //logger("getValue",getValue(afx,"x",5));
 //console.log(solve(str,"x",10));
-var maxguess = Number.MAX_VALUE;
-maxguess = 1;
-var eqa = "1+2+3=4+f*f";
-var aafx = equationtofunc(eqa);
-log(atsolve(aafx));
+//var maxguess = Number.MAX_VALUE;
+//maxguess = 1;
+//var eqa = "1+2+3=4+f*f";
+//var aafx = equationtofunc(eqa);
+//log(atsolve(aafx));
 //log(solve(eqa, "f", maxguess));

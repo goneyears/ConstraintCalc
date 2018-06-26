@@ -20,8 +20,8 @@ function splitToComment(str){
 }
 var vars = [];
 var varInPair = new Dictionary();
-var formula;
 var aformula = [];
+var oldvaluesave;
 function genInputbox(area, id){
     var element = document.createElement("input");
     element.id = id;
@@ -88,6 +88,7 @@ function generate(){
 
         }
         input.onblur=blur_event;
+        input.onfocus=focus_event;
     } 
     log(varInPair.getItems());
 }
@@ -117,6 +118,7 @@ function restrictVarInput(varname){
 function freeVarInput(varname){
     var inputboxs = getInput(varname);
     for(var i=0; i<inputboxs.length; i++){
+        inputboxs[i].value="";
         inputboxs[i].style.backgroundColor = '#FFFFFF';
         inputboxs[i].style.color = '#669933';
         inputboxs[i].readOnly = null;
@@ -129,11 +131,11 @@ function getVarValue(varname){
 var lastvar = "";
 function blur_event(){
     var varname = getVar(this.id);
-    var varvalue = this.value;
+    var varvalue = oldvaluesave;
     
     if(this.readOnly != true){
         if(this.value == ""){
-            treesubstitute(aformula,varvalue,varname);
+            aformula = treesubstitute(aformula,varvalue,varname);
             log(aformula);
             freeVarInput(lastvar);
         }
@@ -141,11 +143,12 @@ function blur_event(){
             varname = getVar(this.id);
             varvalue = this.value;
             displayVarValue(varname, varvalue);//display other inputbox with the same variable
-            treesubstitute(aformula,varname,varvalue);
+            aformula = treesubstitute(aformula,varname,varvalue);
             log(aformula);
             //var res = autosolve(formula);
             var res = atsolve(aformula);
             if(res!=null){
+                log(res);
                 displayVarValue(res.varname, res.solution);
                 restrictVarInput(res.varname);
                 lastvar = res.varname;
@@ -154,13 +157,16 @@ function blur_event(){
     }
 }
 function test(a){
-    a[0]="ddd";
+    var b = ["ddd"];
+    a = b;
+
 }
 var aa = [2];
 test(aa);
 log(aa);
 
 function focus_event(){
+    oldvaluesave = this.value;
     console.log("focus");
 }
 function setrestrict(){
