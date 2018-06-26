@@ -6,6 +6,25 @@ function equationtofunc(eqstr){
 function substitute(eqstr,varname,varvalue){
     return eqstr.replace(varname,varvalue);
 }
+function asubstitute(afx,ori,subs){
+    for(var i=0; i<afx.length; i++){
+        if(afx[i] == ori){
+            afx[i] == subs;
+        }
+    }
+}
+function treesubstitute(afx,ori,subs){
+    if(isTree(afx)){
+        treesubstitute(Lt(afx));
+        treesubstitute(Rt(afx));
+    }
+    else{
+        if(afx == ori){
+            afx = subs;
+        }
+    }
+}
+
 function deriv(arrfx, x){
     function iter(afx){
         if(isTree(afx)){
@@ -89,7 +108,12 @@ function solve(eqstr, x, start){
 }
 
 function atsolve(afx){
-    
+    var variables = new aVariables(afx);
+    if(variables.count == 1){
+        var x = variables.name[0];
+        return {varname:x, soultion:findzero(afx,x,10)};
+    }
+    return null;
 }
 
 function autosolve(fstr){
@@ -109,4 +133,6 @@ function autosolve(fstr){
 var maxguess = Number.MAX_VALUE;
 maxguess = 1;
 var eqa = "1+2+3=4+f*f";
-log(solve(eqa, "f", maxguess));
+var aafx = equationtofunc(eqa);
+log(atsolve(aafx));
+//log(solve(eqa, "f", maxguess));

@@ -35,7 +35,6 @@ Array.prototype.isInArray = function(v){
 function aVariables(afx){
     this.count = 0;
     this.name = [];
-    var that = this;
     function iter(af){
         if(isTree(af)){
             var ilt = iter(Lt(af));
@@ -55,9 +54,6 @@ function aVariables(afx){
         }
         else{
             if(isVar(af)){
-                that.count += 1;
-                log(that.count);
-                log(af);
                 return [af];
             }
             else{
@@ -65,7 +61,13 @@ function aVariables(afx){
             }
         }
     }
-    this.name = iter(afx);
+    var names = iter(afx);
+    for(var i=0; i< names.length; i++){
+        if(!this.name.isInArray(names[i])){
+            this.count ++;
+            this.name.push(names[i]);
+        }
+    }
 }
 function Variables(str){
     as = optSplit(str);
@@ -153,14 +155,10 @@ function leaftoArray(tree){
     iter(tree);
     return dic;
 }
-function equationtofunc(eqstr){
-    var arreqleft = parse(eqLeft(eqstr));
-    var arreqright = parse(eqRight(eqstr));
-    return ["-", arreqleft, arreqright];
-}
+
 var astr = "a+1-(c+d)=m+f";
 //astr = "a+(b-c)=0";
-var b = equationtofunc(astr);
-log(b);
-var av = new aVariables(b);
-log(av);
+//var b = equationtofunc(astr);
+//log(b);
+//var av = new aVariables(b);
+//log(av);

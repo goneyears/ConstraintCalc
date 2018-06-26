@@ -21,6 +21,7 @@ function splitToComment(str){
 var vars = [];
 var varInPair = new Dictionary();
 var formula;
+var aformula = [];
 function genInputbox(area, id){
     var element = document.createElement("input");
     element.id = id;
@@ -65,10 +66,12 @@ function generate(){
 
     var obj = document.getElementById("formulainput");
     var str = obj.value;
-    formula = str;//add string operate to str,trim or replace spaces;
-    var dicleft = leaftoArray(parse(eqLeft(str)));
-    var dicright = leaftoArray(parse(eqRight(str)));
-    vars = dicleft.concat(dicright); 
+    //formula = str;//add string operate to str,trim or replace spaces;
+    aformula = equationtofunc(str);
+    //var dicleft = leaftoArray(parse(eqLeft(str)));
+    //var dicright = leaftoArray(parse(eqRight(str)));
+    //vars = dicleft.concat(dicright); 
+    vars = leaftoArray(aformula);
     log(vars);
     var area = document.getElementById("formarea");
     area.innerHTML = "";
@@ -130,17 +133,18 @@ function blur_event(){
     
     if(this.readOnly != true){
         if(this.value == ""){
-            formula = substitute(formula,varvalue,varname);
-            log(formula);
+            treesubstitute(aformula,varvalue,varname);
+            log(aformula);
             freeVarInput(lastvar);
         }
         else{
             varname = getVar(this.id);
             varvalue = this.value;
             displayVarValue(varname, varvalue);//display other inputbox with the same variable
-            formula = substitute(formula,varname,varvalue);
-            log(formula);
-            var res = autosolve(formula);
+            treesubstitute(aformula,varname,varvalue);
+            log(aformula);
+            //var res = autosolve(formula);
+            var res = atsolve(aformula);
             if(res!=null){
                 displayVarValue(res.varname, res.solution);
                 restrictVarInput(res.varname);
@@ -149,6 +153,12 @@ function blur_event(){
         }
     }
 }
+function test(a){
+    a[0]="ddd";
+}
+var aa = [2];
+test(aa);
+log(aa);
 
 function focus_event(){
     console.log("focus");
@@ -170,8 +180,4 @@ function setrestrict(){
         }
     }
 }
-function test(){
-    getInput("a").style.backgroundColor = "#FFFFFF"; 
-    getInput("a").style.borderColor = "#FFFFFF"; 
-    
-}
+
