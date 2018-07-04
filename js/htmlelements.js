@@ -18,9 +18,16 @@ function splitToComment(str){
     }
     return res;
 }
+
+function varobj(varname,input, value){
+    this.name = varname;
+    this.input = input;
+    this.value = value;
+}
 var vars = [];
 var varInPair = new Dictionary();
 var aformula = [];
+var oformula = [];
 var oldvaluesave;
 function genInputbox(area, id){
     var element = document.createElement("input");
@@ -61,6 +68,45 @@ function eqLeft(str){
 function eqRight(str){
     return str.split("=")[1];
 }
+
+function VarTrToObjTr(vartree){
+    if(isTree(vartree)){
+        return [vartree[0],VarTrToObjTr(Lt(vartree)),VarTrToObjTr(Rt(vartree))];
+    }
+    else{
+        var varname = vartree;
+        return new varobj(varname,getInputObjs(varname), null);
+    }
+}
+
+function ObjTrToVarTr(objtree){
+    if(isTree(objtree)){
+        return [objtree[0],ObjTrToVarTr(Lt(objtree)),ObjTrToVarTr(Rt(objtree))];
+    }
+    else{
+        var obj = objtree;
+        if(obj.value == null){
+            return obj.name;
+        }
+        else{
+            return obj.value;
+        }
+    }
+}
+function changeObjTree(objtree, varname, value){
+    if(isTree(objtree)){
+        return [objtree[0], changeObjTree(Lt(objtree), varname, value), changeObjTree(Rt(objtree), varname, value)];
+    }
+    else{
+        var obj = objtree;
+        if(obj.name == varname){
+            return new varobj(varname,getInputObjs(varname), value);
+        }
+        else{
+            return obj;
+        }
+    }
+}
 function generate(){
     varInPair.clear();
 
@@ -72,7 +118,6 @@ function generate(){
     //var dicright = leaftoArray(parse(eqRight(str)));
     //vars = dicleft.concat(dicright); 
     vars = leaftoArray(aformula);
-    log(vars);
     var area = document.getElementById("formarea");
     area.innerHTML = "";
     var comments = splitToComment(str);
@@ -81,74 +126,80 @@ function generate(){
         genCommentbox(area,comments[i]);
         var input = genInputbox(area, "input_"+i.toString()+"_"+vars[i]);
         if(varInPair.has(vars[i])){
-            varInPair.set(vars[i], (varInPair.get(vars[i])).concat([input]));
+            //varInPair.set(vars[i], (varInPair.get(vars[i])).concat([input]));
+            varInPair.set(vars[i], (varInPair.get(vars[i])).concat([new varobj(vars[i],input,null)]));
         }
         else{
-            varInPair.set(vars[i], [input]);
+            varInPair.set(vars[i], [new varobj(vars[i],input,null)]);
 
         }
         input.onblur=blur_event;
         input.onfocus=focus_event;
     } 
-    log(varInPair.getItems());
+    oformula = VarTrToObjTr(aformula);
 }
 
 function getVar(inputid){
     return inputid.split("_")[2];
 }
 
-function getInput(varname){
+function getInputObjs(varname){
     return varInPair.get(varname);
 }
 
 function displayVarValue(varname, value){
-    var inputboxs = getInput(varname);
-    for(var i=0; i<inputboxs.length; i++){
-        inputboxs[i].value = value;
+    var inputobjs = getInputObjs(varname);
+    for(var i=0; i<inputobjs.length; i++){
+        inputobjs[i].input.value = value;
     }
 }
 function restrictVarInput(varname){
-    var inputboxs = getInput(varname);
-    for(var i=0; i<inputboxs.length; i++){
-        inputboxs[i].style.backgroundColor = '#FF9966';
-        inputboxs[i].style.color = '#FFFFFF';
-        inputboxs[i].readOnly = 'readOnly';
+    var inputobjs = getInputObjs(varname);
+    for(var i=0; i<inputobjs.length; i++){
+        inputobjs[i].input.style.backgroundColor = '#FF9966';
+        inputobjs[i].input.style.color = '#FFFFFF';
+        inputobjs[i].input.readOnly = 'readOnly';
     }
 }
 function freeVarInput(varname){
-    var inputboxs = getInput(varname);
-    for(var i=0; i<inputboxs.length; i++){
-        inputboxs[i].value="";
-        inputboxs[i].style.backgroundColor = '#FFFFFF';
-        inputboxs[i].style.color = '#669933';
-        inputboxs[i].readOnly = null;
+    var inputobjs = getInputObjs(varname);
+    log(varname);
+    log(inputobjs);
+    for(var i=0; i<inputobjs.length; i++){
+        inputobjs[i].input.value="";
+        inputobjs[i].input.style.backgroundColor = '#FFFFFF';
+        inputobjs[i].input.style.color = '#669933';
+        inputobjs[i].input.readOnly = null;
     }
 }
 
 function getVarValue(varname){
-    return getInput(varname).value;
+    return getInputObjs(varname).input.value;
 }
 var lastvar = "";
 function blur_event(){
     var varname = getVar(this.id);
-    var varvalue = oldvaluesave;
+    var varvalue= this.value;
     
     if(this.readOnly != true){
         if(this.value == ""){
-            aformula = treesubstitute(aformula,varvalue,varname);
-            log(aformula);
-            freeVarInput(lastvar);
+            //aformula = treesubstitute(aformula,varvalue,varname);
+            oformula = changeObjTree(oformula,varname,null);
+            aformula = ObjTrToVarTr(oformula);
+            freeVarInput(varname)
+            if(lastvar != ""){
+                freeVarInput(lastvar);
+            }
         }
         else{
-            varname = getVar(this.id);
-            varvalue = this.value;
             displayVarValue(varname, varvalue);//display other inputbox with the same variable
-            aformula = treesubstitute(aformula,varname,varvalue);
-            log(aformula);
-            //var res = autosolve(formula);
+            //aformula = treesubstitute(aformula,varname,varvalue);
+            oformula = changeObjTree(oformula, varname, varvalue);
+            log(oformula);
+            aformula = ObjTrToVarTr(oformula);
+            logger("aformual", aformula);
             var res = atsolve(aformula);
             if(res!=null){
-                log(res);
                 displayVarValue(res.varname, res.solution);
                 restrictVarInput(res.varname);
                 lastvar = res.varname;
@@ -174,15 +225,15 @@ function setrestrict(){
         var keyvalue = vars.keys()[i]; 
         var ct = vars.get(keyvalue);
         if(ct.get_setter() != "usr" && ct.get_setter() != false){
-            getInput(keyvalue).style.backgroundColor = '#FF9966';
-            getInput(keyvalue).style.color = '#FFFFFF';
-            getInput(keyvalue).readOnly = 'readOnly';
+            getInputObjs(keyvalue).input.style.backgroundColor = '#FF9966';
+            getInputObjs(keyvalue).input.style.color = '#FFFFFF';
+            getInputObjs(keyvalue).input.readOnly = 'readOnly';
         }
         else
         {
-            getInput(keyvalue).style.backgroundColor = '#FFFFFF';
-            getInput(keyvalue).style.color = '#669933';
-            getInput(keyvalue).readOnly = null;
+            getInputObjs(keyvalue).input.style.backgroundColor = '#FFFFFF';
+            getInputObjs(keyvalue).input.style.color = '#669933';
+            getInputObjs(keyvalue).input.readOnly = null;
         }
     }
 }
